@@ -1,103 +1,197 @@
-# Soil & Climate Monitoring System
+# 🌱 Soil & Climate Monitoring System
 
-An Arduino-based soil and environmental monitoring system that measures soil moisture, temperature, and humidity, displaying the data on an OLED screen and the Serial Monitor.
+An IoT-based soil and environmental monitoring system built with an **ESP8266**, designed to monitor plant conditions in real time.
 
----
+The system collects **soil moisture, temperature, and humidity** data using sensors connected to the ESP8266. The readings are displayed locally on an **OLED screen** and sent over Wi-Fi to a **Node.js server**, where they can be stored and processed.
 
 ## Project Overview
 
-This project uses:
+The system is composed of three main parts:
 
-- Soil Moisture Sensor (Analog - A0)
-- DHT22 Sensor (Temperature & Humidity - D3)
-- SSD1306 128x64 OLED Display (I2C)
+* **ESP8266 / NodeMCU** — reads the sensors and communicates over Wi-Fi
+* **Arduino code** — controls the sensors, OLED display, and data transmission
+* **Node.js / Express server (`server.js`)** — receives and processes sensor data
+* **MySQL database** — stores the collected measurements
 
-The system continuously reads environmental data and updates every 2 seconds.
+### Data Flow
+
+```text
+Soil Sensor ─────┐
+                 │
+DHT22 ───────────┼──> ESP8266 ──Wi-Fi──> server.js ──> MySQL
+                 │
+OLED Display <───┘
+```
+
+The ESP8266 continuously collects sensor readings, displays them on the OLED screen, and sends the measurements to the backend server.
 
 ---
 
 ## Features
 
-- Detects Dry, Moist, or Wet soil conditions  
-- Displays temperature in °C  
-- Displays humidity in %  
-- Shows all readings on:
-  - OLED display
-  - Serial Monitor  
-- Auto refresh every 2 seconds  
+* 🌱 Soil moisture monitoring
+* 🌡️ Temperature measurement
+* 💧 Humidity measurement
+* 📺 Real-time OLED display
+* 📡 Wi-Fi communication
+* 🖥️ Node.js / Express backend
+* 🗄️ MySQL data storage
+* 📊 Sensor data available for future dashboards and analysis
+* 🔄 Automatic sensor updates
 
 ---
 
-## Hardware Required
+## Hardware
 
-- Arduino / ESP8266 (NodeMCU compatible)
-- Soil moisture sensor
-- DHT22 temperature & humidity sensor
-- SSD1306 OLED display (128x64, I2C)
-- Jumper wires
-
----
+* ESP8266 / NodeMCU
+* Capacitive soil moisture sensor
+* DHT22 temperature & humidity sensor
+* SSD1306 128×64 OLED display
+* Jumper wires
+* USB cable / power supply
 
 ## Pin Configuration
 
-| Component            | Pin |
-|----------------------|-----|
-| Soil Sensor (Analog) | A0  |
-| DHT22 Data           | D3  |
-| OLED (I2C)           | 0x3C (default address) |
+| Component            | ESP8266 Pin |
+| -------------------- | ----------- |
+| Soil Moisture Sensor | A0          |
+| DHT22 Data           | D3          |
+| OLED SDA             | D2          |
+| OLED SCL             | D1          |
+| OLED Address         | 0x3C        |
 
 ---
 
 ## Soil Condition Logic
 
+The soil moisture sensor value is used to classify the soil condition:
+
 | Analog Value | Soil Status |
-|--------------|------------|
-| > 800        | Dry        |
-| 500 – 800    | Moist      |
-| < 500        | Wet        |
+| -----------: | ----------- |
+|        > 800 | 🌵 Dry      |
+|      500–800 | 🌱 Moist    |
+|        < 500 | 💧 Wet      |
+
+These thresholds can be adjusted depending on the sensor and the type of soil being monitored.
 
 ---
 
-## Libraries Used
+## Software
 
-Make sure to install the following libraries in Arduino IDE:
+### ESP8266 / Arduino
 
-- Adafruit_GFX
-- Adafruit_SSD1306
-- DHT sensor library
-- Wire
+The Arduino program is responsible for:
+
+1. Connecting the ESP8266 to Wi-Fi.
+2. Reading the soil moisture sensor.
+3. Reading temperature and humidity from the DHT22.
+4. Updating the OLED display.
+5. Sending sensor data to the Node.js server.
+6. Repeating the process at a defined interval.
+
+### Node.js Server
+
+The `server.js` application provides the backend API used by the ESP8266.
+
+The server:
+
+* Receives sensor measurements through HTTP requests.
+* Processes incoming data.
+* Connects to the MySQL database.
+* Stores sensor measurements.
+* Provides an API that can later be used by a web dashboard or other applications.
+
+Example sensor data sent by the ESP8266:
+
+```json
+{
+  "sensor_id": 1,
+  "soil": 644,
+  "temperature": 25.3,
+  "humidity": 50.3
+}
+```
 
 ---
 
-## How It Works
+## Database
 
-1. The system reads soil moisture from the analog sensor.
-2. It classifies the soil condition (Dry, Moist, Wet).
-3. The DHT22 sensor measures temperature and humidity.
-4. All values are printed to:
-   - Serial Monitor
-   - OLED display
-5. The loop repeats every 2 seconds.
+Sensor measurements are stored in a MySQL database.
+
+A typical measurement contains:
+
+| Field         | Description                  |
+| ------------- | ---------------------------- |
+| `id`          | Measurement ID               |
+| `sensor_id`   | Sensor identifier            |
+| `timestamp`   | Date and time of measurement |
+| `soil`        | Soil moisture value          |
+| `temperature` | Temperature in °C            |
+| `humidity`    | Relative humidity in %       |
+
+This makes it possible to keep a history of the plant's environmental conditions and analyze changes over time.
 
 ---
 
-## Applications
+## Libraries
 
-- Smart gardening
-- Plant health monitoring
-- Greenhouse monitoring
-- Educational IoT projects
+### Arduino
+
+The ESP8266 project uses libraries such as:
+
+* ESP8266WiFi
+* ESP8266HTTPClient
+* ArduinoJson
+* Adafruit_GFX
+* Adafruit_SSD1306
+* DHT sensor library
+* Wire
+
+### Node.js
+
+The backend uses:
+
+* Express
+* MySQL2
+* dotenv
+* Nodemailer
+
+---
+
+## Project Structure
+
+```text
+soil-climate-monitor/
+│
+├── arduino/
+│   └── soil_climate_monitor.ino
+│
+├── server/
+│   ├── server.js
+│   └── .env
+│
+└── README.md
+```
+
+> The `.env` file contains private configuration such as database credentials, Wi-Fi/API settings, and should **not be committed to GitHub**.
 
 ---
 
 ## Future Improvements
 
-- Add WiFi data logging
-- Integrate mobile app monitoring
-- Add automatic irrigation control
-- Store data in cloud database
+* 📊 Web dashboard for real-time monitoring
+* 📈 Historical graphs
+* 🔔 Automatic plant-dryness alerts
+* 📧 Email notifications
+* 🌐 Remote monitoring
+* 🚿 Automatic irrigation
+* 📱 Mobile interface
+* 🌱 Support for multiple sensors/plants
 
 ---
 
-### Author
-Your Name Here
+## Author
+
+**Andres Henao**
+
+
