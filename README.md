@@ -8,6 +8,8 @@ The system collects **soil moisture, temperature, and humidity** data using sens
 
 The system is composed of three main parts:
 
+![Plant Monitor connection](plan.png)
+
 * **ESP8266 / NodeMCU** — reads the sensors and communicates over Wi-Fi
 * **Arduino code** — controls the sensors, OLED display, and data transmission
 * **Node.js / Express server (`server.js`)** — receives and processes sensor data
